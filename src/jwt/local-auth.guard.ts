@@ -1,0 +1,1 @@
+export { LocalAuthGuard } from './jwt-auth.guard';
