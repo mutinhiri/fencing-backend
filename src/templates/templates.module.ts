@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { PricingTemplate } from './template.entity';
+// import { PricingTemplate } from './template.entity';
+import { PricingTemplate } from './entities/template.entity';
 import { TemplatesService } from './templates.service';
 import { TemplatesController } from './templates.controller';
 

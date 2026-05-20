@@ -5,9 +5,12 @@ import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TemplatesModule } from './templates/templates.module';
 import { QuotesModule } from './quotes/quotes.module';
-import { User } from './users/user.entity';
-import { PricingTemplate } from './templates/template.entity';
-import { Quote } from './quotes/quote.entity';
+// import { User } from './users/user.entity';
+import { User } from './users/entities/user.entity';
+// import { PricingTemplate } from './templates/template.entity';
+import { PricingTemplate } from './templates/entities/template.entity';
+// import { Quote } from './quotes/quote.entity';
+import { Quote } from './quotes/entities/quote.entity';
 import { PdfModule } from './pdf/pdf.module';
 
 @Module({

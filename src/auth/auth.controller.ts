@@ -1,7 +1,9 @@
 import { Controller, Post, Get, Body, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LocalAuthGuard } from './local-auth.guard';
-import { JwtAuthGuard } from './jwt-auth.guard';
+// import { LocalAuthGuard } from './local-auth.guard';
+import { LocalAuthGuard } from 'src/jwt/jwt-auth.guard';
+// import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtAuthGuard } from 'src/jwt/jwt-auth.guard';
 import { IsEmail, IsString } from 'class-validator';
 
 export class LoginDto {

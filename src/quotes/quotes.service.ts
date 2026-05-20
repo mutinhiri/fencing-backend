@@ -1,15 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Quote, QuoteStatus } from './quote.entity';
+// import { Quote, QuoteStatus } from './quote.entity';
+import { Quote, QuoteStatus } from './entities/quote.entity';
 import { TemplatesService } from '../templates/templates.service';
-import { calculateMaterials, sqmToMetres, QuoteCalculation } from './calculation.engine';
-import { IsString, IsNumber, IsOptional, IsEnum, Min } from 'class-validator';
+import {
+  calculateMaterials,
+  sqmToMetres,
+  QuoteCalculation,
+  SqmConversion,
+} from './calculation.engine';
+import { IsString, IsNumber, IsOptional, Min } from 'class-validator';
 
 export class CalculateDto {
-  @IsNumber() @Min(1) metres?: number;
-  @IsNumber() @Min(1) @IsOptional() sqm?: number;
-  @IsString() height: string; // "1.8" | "1.5" | "1.2"
+  @IsOptional() @IsNumber() @Min(1) metres?: number;
+  @IsOptional() @IsNumber() @Min(1) sqm?: number;
+  @IsString() height: string;
 }
 
 export class CreateQuoteDto {
@@ -18,7 +24,7 @@ export class CreateQuoteDto {
   @IsOptional() @IsString() clientPhone?: string;
   @IsOptional() @IsString() clientAddress?: string;
   @IsOptional() @IsString() projectSite?: string;
-  @IsNumber() @Min(1) metres?: number;
+  @IsOptional() @IsNumber() @Min(1) metres?: number;
   @IsOptional() @IsNumber() sqm?: number;
   @IsString() height: string;
   @IsOptional() @IsString() notes?: string;
@@ -33,70 +39,61 @@ export class QuotesService {
   ) {}
 
   private generateQuoteNumber(): string {
-    const ts = Date.now().toString().slice(-7);
-    return `FP-${ts}`;
+    return `FP-${Date.now().toString().slice(-7)}`;
   }
 
-  async calculate(dto: CalculateDto): Promise<{ calc: QuoteCalculation; sqmInfo?: any }> {
-    const template = await this.templatesService.findActive();
-    let metres = dto.metres;
-    let sqmInfo = null;
-
+  /** Resolve metres/sqm into a concrete number + optional sqm info. */
+  private resolveMetres(dto: { metres?: number; sqm?: number }): {
+    metres: number;
+    sqmInfo?: SqmConversion;
+  } {
     if (dto.sqm && !dto.metres) {
-      sqmInfo = sqmToMetres(dto.sqm);
-      metres = sqmInfo.perimeter;
+      const sqmInfo = sqmToMetres(dto.sqm);
+      return { metres: sqmInfo.perimeter, sqmInfo };
     }
+    return { metres: dto.metres as number };
+  }
 
+  async calculate(dto: CalculateDto): Promise<{ calc: QuoteCalculation; sqmInfo?: SqmConversion }> {
+    const template = await this.templatesService.findActive();
+    const { metres, sqmInfo } = this.resolveMetres(dto);
     const calc = calculateMaterials(metres, dto.height, template);
     return { calc, sqmInfo };
   }
 
   async create(dto: CreateQuoteDto, userId: number): Promise<Quote> {
     const template = await this.templatesService.findActive();
-    let metres = dto.metres;
-    let sqmInfo = null;
-
-    if (dto.sqm && !dto.metres) {
-      sqmInfo = sqmToMetres(dto.sqm);
-      metres = sqmInfo.perimeter;
-    }
-
+    const { metres, sqmInfo } = this.resolveMetres(dto);
     const calc = calculateMaterials(metres, dto.height, template);
 
     const quote = this.repo.create({
-      quoteNumber: this.generateQuoteNumber(),
-      clientName: dto.clientName,
-      clientEmail: dto.clientEmail,
-      clientPhone: dto.clientPhone,
-      clientAddress: dto.clientAddress,
-      projectSite: dto.projectSite,
+      quoteNumber:    this.generateQuoteNumber(),
+      clientName:     dto.clientName,
+      clientEmail:    dto.clientEmail,
+      clientPhone:    dto.clientPhone,
+      clientAddress:  dto.clientAddress,
+      projectSite:    dto.projectSite,
       metres,
-      sqm: dto.sqm,
-      height: dto.height,
-      subtotal: calc.subtotal,
-      vat: calc.vat,
-      grand: calc.grand,
-      calculationJson: JSON.stringify({ calc, sqmInfo, template }),
-      templateId: template.id,
-      notes: dto.notes,
-      createdById: userId,
-      status: QuoteStatus.DRAFT,
+      sqm:            dto.sqm,
+      height:         dto.height,
+      subtotal:       calc.subtotal,
+      vat:            calc.vat,
+      grand:          calc.grand,
+      calculationJson: JSON.stringify({ calc, sqmInfo: sqmInfo ?? null, template }),
+      templateId:     template.id,
+      notes:          dto.notes,
+      createdById:    userId,
+      status:         QuoteStatus.DRAFT,
     });
 
     return this.repo.save(quote);
   }
 
-  async findAll(userId: number, role: string) {
+  async findAll(userId: number, role: string): Promise<Quote[]> {
     if (role === 'admin') {
-      return this.repo.find({
-        order: { createdAt: 'DESC' },
-        relations: ['createdBy'],
-      });
+      return this.repo.find({ order: { createdAt: 'DESC' }, relations: ['createdBy'] });
     }
-    return this.repo.find({
-      where: { createdById: userId },
-      order: { createdAt: 'DESC' },
-    });
+    return this.repo.find({ where: { createdById: userId }, order: { createdAt: 'DESC' } });
   }
 
   async findOne(id: number, userId: number, role: string): Promise<Quote> {

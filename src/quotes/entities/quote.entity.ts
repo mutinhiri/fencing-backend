@@ -2,7 +2,8 @@ import {
   Entity, PrimaryGeneratedColumn, Column,
   CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn,
 } from 'typeorm';
-import { User } from '../users/user.entity';
+// import { User } from '../users/user.entity';
+import { User } from 'src/users/entities/user.entity';
 
 export enum QuoteStatus {
   DRAFT = 'draft',

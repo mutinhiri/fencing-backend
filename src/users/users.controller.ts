@@ -3,10 +3,14 @@ import {
   UseGuards, ParseIntPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { RolesGuard } from '../auth/roles.guard';
-import { Roles } from '../auth/roles.decorator';
-import { UserRole } from './user.entity';
+// import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/jwt/jwt-auth.guard';
+// import { RolesGuard } from '../auth/roles.guard';
+import { RolesGuard } from 'src/jwt/jwt-auth.guard';
+// import { Roles } from '../auth/roles.decorator';
+import { Roles } from 'src/jwt/jwt-auth.guard';
+// import { UserRole } from './user.entity';
+import { UserRole } from './entities/user.entity';
 import { IsEmail, IsString, MinLength, IsOptional, IsEnum, IsBoolean } from 'class-validator';
 
 export class CreateUserDto {

@@ -1,7 +1,8 @@
 import { Injectable, OnModuleInit, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PricingTemplate } from './template.entity';
+// import { PricingTemplate } from './template.entity';
+import { PricingTemplate } from './entities/template.entity';
 
 @Injectable()
 export class TemplatesService implements OnModuleInit {

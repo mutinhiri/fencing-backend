@@ -1,4 +1,5 @@
-import { PricingTemplate } from '../templates/template.entity';
+// import { PricingTemplate } from '../templates/template.entity';
+import { PricingTemplate } from "../templates/entities/template.entity";
 
 export interface PostBreakdown {
   cornerPosts: number;
